@@ -1,16 +1,24 @@
+import Info from "@/components/dashboard/Info";
 
-import Devise from '@/components/dashboard/devise'
-import Sidebar from '@/components/dashboard/Sidebar'
-import React from 'react'
+import Devise from "@/components/dashboard/Devise";
+import Sidebar from "@/components/dashboard/Sidebar";
+import React from "react";
 
 function page() {
   return (
-    <div>
-<Sidebar/>
-
-   
-</div>
-  )
+    <div className="flex items-center h-screen">
+      <aside className="w-64 h-full hidden lg:block">
+        <Sidebar />
+      </aside>
+      <div className="h-full flex-1 flex justify-center p-5">
+        <div className="">
+          <Devise />
+          <Info />
+        </div>
+        
+      </div>
+    </div>
+  );
 }
 
-export default page
+export default page;

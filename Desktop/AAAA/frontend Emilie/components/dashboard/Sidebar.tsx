@@ -10,7 +10,8 @@ const dash=[
 
 function Sidebar() {
   return (
-<ul className='menu bg-blue-600 text-white w-64 min-h-screen p-4  rounded-none hidden lg:block'>
+<ul className='menu bg-blue-500 text-white w-full min-h-screen p-4  rounded-none  '>
+<li className='text-3xl mt-0 mb-4 ml-3 font-bold'>Emilie</li>
 <li className='text-2xl font-bold mb-9'>
 {dash.map((das)=>(
     <li key={das.name} className='mt-4'>
