@@ -1,10 +1,10 @@
 import React from "react";
 //nom des different meta info
 const metaData = [
-  { title: "dettes des clients" },
-  { title: "mes dettes" },
-  { title: "produit deteriorer" },
-  { title: "nombre de produits" },
+  { title: "dettes des clients",nombre:2 },
+  { title: "mes dettes",nombre:2 },
+  { title: "produit deteriorer",nombre:2 },
+  { title: "nombre de produits",nombre:2 },
 ];
 function Info() {
   return (
@@ -13,8 +13,9 @@ function Info() {
         {metaData.map((data) => (
           <li key={data.title} className="rounded-xl bg-white p-6 shadow-xl flex items-center justify-center">
             
-           <h2 className="text-base"> 
-            {data.title}
+           <h2 className="text-base grid grid-cols-1"> 
+           <div className="flex justify-center items-center"> {data.title}</div> 
+            <div className="flex justify-center items-center">{data.nombre}</div>
             </h2>
             
            </li>

@@ -5,6 +5,7 @@ const dash=[
     {name:"Dettes Client", href:"li"},
     {name:"Mes Dettes", href:"li"},
     {name:"Produit Endommagé", href:"li"},
+    {name:"Historique", href:"li"},
 {name:"TchatBoot", href:"li"}
 ]
 
