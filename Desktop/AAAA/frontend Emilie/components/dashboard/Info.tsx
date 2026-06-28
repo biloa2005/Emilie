@@ -4,18 +4,33 @@ import React, { useEffect, useState } from "react";
 function Info() {
   
   const [product, setProduct] = useState<number>(0);
-
+const [displayValue,setDisplayValue]=useState<number>(0);
   
   useEffect(() => {
     async function totalDebt() {
       try {
+        console.log(process.env.NEXT_PUBLIC_API_URL);
         //  l'URL API
         const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mydebt/total`);
         
         // mon api nestjs renvoie un chiffre
         const textData = await response.text();
-        setProduct(Number(textData));
-console.log(product)
+        const target=Number(textData)
+        setProduct(target);
+
+let start=0;
+const duration=1000;
+const stepTime=10;
+const increment=target/(duration/stepTime);
+//animation
+const interval= setInterval(()=>{
+  start+=increment;
+  if(start>=target){
+    start=target;
+    clearInterval(interval)
+  }
+  setDisplayValue(Math.floor(start));
+},stepTime)
 
         //cry et catch gere les erreur
         
@@ -25,6 +40,12 @@ console.log(product)
     }
     totalDebt();
   }, []);
+  //variation des couleurs en fonction du montant de la dettes
+  const getColor=()=>{
+    if(product===0) return "text-green-500";
+    if(product > 50000) return "text-red-500";
+      return "text-accent";
+  }
 
   return (
     <div>
@@ -34,8 +55,8 @@ console.log(product)
             <div className="flex justify-center items-center">
               Montant de mes dettes
             </div>
-            <div className="flex justify-center items-center text-accent text-2xl font-bold">
-              {product}
+            <div className={`flex justify-center items-center text-2xl font-bold ${getColor()}`}>
+              {displayValue}
             </div>
           </h2>
         </div>
