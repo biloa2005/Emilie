@@ -1,69 +1,167 @@
 "use client";
 import React, { useEffect, useState } from "react";
+// Optionnel : Importe des icônes de lucide-react si tu les as, sinon des SVG natifs sont intégrés ci-dessous
+import { Wallet, Users, Package, AlertTriangle } from "lucide-react";
 
 function Info() {
-  
-  const [product, setProduct] = useState<number>(0);
-const [displayValue,setDisplayValue]=useState<number>(0);
-  
+  const [myDebt, setMyDebt] = useState<number>(0);
+  const [displayDebt, setDisplayDebt] = useState<number>(0);
+  const [clientDebts, setClientDebts] = useState<number>(0);
+  const [totalProducts, setTotalProducts] = useState<number>(0);
+  const [damagedProducts, setDamagedProducts] = useState<number>(0);
+  const [loading, setLoading] = useState<boolean>(true);
+
   useEffect(() => {
-    async function totalDebt() {
+    let intervalId: NodeJS.Timeout;
+
+    async function loadDashboardData() {
       try {
-        console.log(process.env.NEXT_PUBLIC_API_URL);
-        //  l'URL API
-        const response = await fetch(`${process.env.NEXT_PUBLIC_API_URL}/mydebt/total`);
         
-        // mon api nestjs renvoie un chiffre
-        const textData = await response.text();
-        const target=Number(textData)
-        setProduct(target);
+        // Chargement simultané de toutes les routes de l'API
+        const [myDebtRes, productsRes, debtRes, damageRes] = await Promise.all([
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/mydebt/total`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/produit/total`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/debt/total`),
+          fetch(`${process.env.NEXT_PUBLIC_API_URL}/damage/total`),
+        ]);
 
-let start=0;
-const duration=1000;
-const stepTime=10;
-const increment=target/(duration/stepTime);
-//animation
-const interval= setInterval(()=>{
-  start+=increment;
-  if(start>=target){
-    start=target;
-    clearInterval(interval)
-  }
-  setDisplayValue(Math.floor(start));
-},stepTime)
+        const myDebtVal = Number(await myDebtRes.text());
+        const productsVal = Number(await productsRes.text());
+        const clientDebtsVal = Number(await debtRes.text());
+        const damageVal = Number(await damageRes.text());
 
-        //cry et catch gere les erreur
-        
+        // Mise à jour des états
+        setMyDebt(myDebtVal);
+        setTotalProducts(productsVal);
+        setClientDebts(clientDebtsVal);
+        setDamagedProducts(damageVal);
+        setLoading(false);
+
+        // Animation du compteur de "Mes Dettes"
+        let start = 0;
+        const duration = 800; // Animation légèrement plus rapide et fluide
+        const stepTime = 15;
+        const increment = myDebtVal / (duration / stepTime);
+
+        intervalId = setInterval(() => {
+          start += increment;
+          if (start >= myDebtVal) {
+            start = myDebtVal;
+            clearInterval(intervalId);
+          }
+          setDisplayDebt(Math.floor(start));
+        }, stepTime);
+
       } catch (err) {
-        console.error("Erreur sur le montant de ma dette", err);
+        console.error("Erreur lors du chargement des données ERP", err);
+        setLoading(false);
       }
     }
-    totalDebt();
+
+    loadDashboardData();
+
+    // Nettoyage de l'intervalle si le composant est démonté
+    return () => {
+      if (intervalId) clearInterval(intervalId);
+    };
   }, []);
-  //variation des couleurs en fonction du montant de la dettes
-  const getColor=()=>{
-    if(product===0) return "text-green-500";
-    if(product > 50000) return "text-red-500";
-      return "text-accent";
+
+  // Détermination de la couleur de la dette personnelle
+  const getMyDebtColor = () => {
+    if (myDebt === 0) return "text-success";
+    if (myDebt > 50000) return "text-error";
+    return "text-warning";
+  };
+
+  // Formatage des nombres pour l'affichage (ex: 50 000 FCFA)
+  const formatNumber = (val: number) => {
+    return new Intl.NumberFormat("fr-FR").format(val);
+  };
+
+  if (loading) {
+    return (
+      <div className="w-full flex justify-center items-center py-10">
+        <span className="loading loading-dots loading-lg text-primary"></span>
+      </div>
+    );
   }
 
   return (
-    <div>
-      <div className="grid grid-cols-1 items-center flex-1 flex justify-center lg:grid-cols-4 gap-10 mt-5 w-full">
-        <div className="rounded-xl bg-white p-6 shadow-xl flex items-center justify-center">
-          <h2 className="text-base grid grid-cols-1">
-            <div className="flex justify-center items-center">
-              Montant de mes dettes
+    <div className="w-full p-4">
+      {/* Conteneur Grid Responsive adaptatif */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 w-full">
+        
+        {/* Carte 1 : Montant de mes dettes */}
+        <div className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-all duration-200">
+          <div className="card-body flex-row items-center justify-between p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-base-content/70 uppercase tracking-wider">
+                Mes Dettes
+              </p>
+              <h3 className={`text-3xl font-bold tracking-tight ${getMyDebtColor()}`}>
+                {formatNumber(displayDebt)} <span className="text-sm font-normal">XAF</span>
+              </h3>
             </div>
-            <div className={`flex justify-center items-center text-2xl font-bold ${getColor()}`}>
-              {displayValue}
+            <div className="p-3 rounded-xl bg-error/10 text-error">
+              <Wallet className="w-6 h-6" />
             </div>
-          </h2>
+          </div>
         </div>
+
+        {/* Carte 2 : Dettes Clients */}
+        <div className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-all duration-200">
+          <div className="card-body flex-row items-center justify-between p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-base-content/70 uppercase tracking-wider">
+                Créances Clients
+              </p>
+              <h3 className="text-3xl font-bold tracking-tight text-info">
+                {formatNumber(clientDebts)} <span className="text-sm font-normal">XAF</span>
+              </h3>
+            </div>
+            <div className="p-3 rounded-xl bg-info/10 text-info">
+              <Users className="w-6 h-6" />
+            </div>
+          </div>
+        </div>
+
+        {/* Carte 3 : Nombre de Produits */}
+        <div className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-all duration-200">
+          <div className="card-body flex-row items-center justify-between p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-base-content/70 uppercase tracking-wider">
+                Stock Produits
+              </p>
+              <h3 className="text-3xl font-bold tracking-tight text-primary">
+                {formatNumber(totalProducts)}
+              </h3>
+            </div>
+            <div className="p-3 rounded-xl bg-primary/10 text-primary">
+              <Package className="w-6 h-6" />
+            </div>
+          </div>
+        </div>
+
+        {/* Carte 4 : Produits Avariés / Pertes */}
+        <div className="card bg-base-100 shadow-xl border border-base-200 hover:shadow-2xl transition-all duration-200">
+          <div className="card-body flex-row items-center justify-between p-6">
+            <div className="space-y-1">
+              <p className="text-sm font-medium text-base-content/70 uppercase tracking-wider">
+                Pertes & Avaries
+              </p>
+              <h3 className="text-3xl font-bold tracking-tight text-error">
+                {formatNumber(damagedProducts)}
+              </h3>
+            </div>
+            <div className="p-3 rounded-xl bg-error/10 text-error">
+              <AlertTriangle className="w-6 h-6" />
+            </div>
+          </div>
+        </div>
+
       </div>
     </div>
   );
 }
 
 export default Info;
-
